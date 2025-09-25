@@ -37,6 +37,8 @@ end
 
 local no_game_code = false
 local invalid_game_path = nil
+local custom_save_path = nil
+local mod_path = nil
 
 -- This can't be overridden.
 function love.boot()
@@ -103,6 +105,12 @@ function love.boot()
 	if realdir then
 		identity = love.path.leaf(realdir)
 	end
+
+	--mod_path = tostring(o.game.arg[2])
+	--custom_save_path = tostring(o.game.arg[3])
+	--print("HJR-LOVE" .. "o.game.arg[1] = " .. tostring(o.game.arg[1]))
+	--print("HJR-LOVE" .. "mod_path = " .. tostring(mod_path))
+	--print("HJR-LOVE" .. "custom_save_path = " .. tostring(custom_save_path))
 
 	identity = identity:gsub("^([%.]+)", "") -- strip leading "."'s
 	identity = identity:gsub("%.([^%.]+)$", "") -- strip extension
