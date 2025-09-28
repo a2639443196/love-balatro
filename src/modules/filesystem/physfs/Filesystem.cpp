@@ -382,48 +382,54 @@ bool Filesystem::setupWriteDirectory()
 
 bool Filesystem::mount(const char *archive, const char *mountpoint, bool appendToPath)
 {
-	if (!PHYSFS_isInit() || !archive)
-		return false;
+    if (!PHYSFS_isInit() || !archive)
+        return false;
 
-	std::string realPath;
-	std::string sourceBase = getSourceBaseDirectory();
+#ifdef LOVE_ANDROID
+    // ✅ 特殊处理 Android 外部路径
+    // 允许 /storage/emulated/0/... 或 /sdcard/... 的绝对路径直接挂载
+    if (strncmp(archive, "/storage/", 9) == 0 || strncmp(archive, "/sdcard/", 8) == 0)
+    {
+        return PHYSFS_mount(archive, mountpoint, appendToPath) != 0;
+    }
+#endif
+    std::string realPath;
+    std::string sourceBase = getSourceBaseDirectory();
 
-	// Check whether the given archive path is in the list of allowed full paths.
-	auto it = std::find(allowedMountPaths.begin(), allowedMountPaths.end(), archive);
+    // 原有的白名单检查逻辑
+    auto it = std::find(allowedMountPaths.begin(), allowedMountPaths.end(), archive);
 
-	if (it != allowedMountPaths.end())
-		realPath = *it;
-	else if (isFused() && sourceBase.compare(archive) == 0)
-	{
-		// Special case: if the game is fused and the archive is the source's
-		// base directory, mount it even though it's outside of the save dir.
-		realPath = sourceBase;
-	}
-	else
-	{
-		// Not allowed for safety reasons.
-		if (strlen(archive) == 0 || strstr(archive, "..") || strcmp(archive, "/") == 0)
-			return false;
+    if (it != allowedMountPaths.end())
+        realPath = *it;
+    else if (isFused() && sourceBase.compare(archive) == 0)
+    {
+        // 特殊情况：fused 游戏的 base dir
+        realPath = sourceBase;
+    }
+    else
+    {
+        // 安全限制：拒绝空路径、..、根目录
+        if (strlen(archive) == 0 || strstr(archive, "..") || strcmp(archive, "/") == 0)
+            return false;
 
-		const char *realDir = PHYSFS_getRealDir(archive);
-		if (!realDir)
-			return false;
+        const char *realDir = PHYSFS_getRealDir(archive);
+        if (!realDir)
+            return false;
 
-		realPath = realDir;
+        realPath = realDir;
 
-		// Always disallow mounting of files inside the game source, since it
-		// won't work anyway if the game source is a zipped .love file.
-		if (realPath.find(game_source) == 0)
-			return false;
+        // 禁止挂载游戏 source 内的路径
+        if (realPath.find(game_source) == 0)
+            return false;
 
-		realPath += LOVE_PATH_SEPARATOR;
-		realPath += archive;
-	}
+        realPath += LOVE_PATH_SEPARATOR;
+        realPath += archive;
+    }
 
-	if (realPath.length() == 0)
-		return false;
+    if (realPath.length() == 0)
+        return false;
 
-	return PHYSFS_mount(realPath.c_str(), mountpoint, appendToPath) != 0;
+    return PHYSFS_mount(realPath.c_str(), mountpoint, appendToPath) != 0;
 }
 
 bool Filesystem::mount(Data *data, const char *archivename, const char *mountpoint, bool appendToPath)

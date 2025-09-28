@@ -106,11 +106,29 @@ function love.boot()
 		identity = love.path.leaf(realdir)
 	end
 
-	--mod_path = tostring(o.game.arg[2])
-	--custom_save_path = tostring(o.game.arg[3])
-	--print("HJR-LOVE" .. "o.game.arg[1] = " .. tostring(o.game.arg[1]))
-	--print("HJR-LOVE" .. "mod_path = " .. tostring(mod_path))
-	--print("HJR-LOVE" .. "custom_save_path = " .. tostring(custom_save_path))
+	mod_path = tostring(arg[1])
+	custom_save_path = tostring(arg[2])
+	print("HJR-LOVE " .. " mod_path = " .. tostring(mod_path))
+	print("HJR-LOVE " .. " custom_save_path = " .. tostring(custom_save_path))
+
+	print("HJR-LOVE real mod_path:", mod_path)
+
+	local info = love.filesystem.getInfo(mod_path)
+	if not info then
+		print("HJR-LOVE getInfo nil for:", mod_path)
+	else
+		print("HJR-LOVE getInfo type:", info.type)
+	end
+
+	if mod_path and #mod_path > 0 then
+		local mountpoint = mod_path:match("([^/]+)$") -- 提取最后一段目录名
+		local ok, err = love.filesystem.mount(mod_path, mountpoint, true)
+		if not ok then
+			print("HJR-LOVE mount failed:", err)
+		else
+			print("HJR-LOVE mount success:", mod_path, "as", mountpoint)
+		end
+	end
 
 	identity = identity:gsub("^([%.]+)", "") -- strip leading "."'s
 	identity = identity:gsub("%.([^%.]+)$", "") -- strip extension
@@ -184,7 +202,7 @@ function love.init()
 		console = false, -- Only relevant for windows.
 		identity = false,
 		appendidentity = false,
-		externalstorage = false, -- Only relevant for Android.
+		externalstorage = true, -- Only relevant for Android.
 		accelerometerjoystick = true, -- Only relevant for Android / iOS.
 		gammacorrect = false,
 	}
