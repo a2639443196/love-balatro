@@ -37,7 +37,6 @@ end
 
 local no_game_code = false
 local invalid_game_path = nil
-local custom_save_path = nil
 local mod_path = nil
 
 -- This can't be overridden.
@@ -107,9 +106,7 @@ function love.boot()
 	end
 
 	mod_path = tostring(arg[1])
-	custom_save_path = tostring(arg[2])
 	print("HJR-LOVE " .. " mod_path = " .. tostring(mod_path))
-	print("HJR-LOVE " .. " custom_save_path = " .. tostring(custom_save_path))
 
 	print("HJR-LOVE real mod_path:", mod_path)
 
